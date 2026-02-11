@@ -4,9 +4,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('title', 'Workflow Management')</title>
+    <title>@yield('title', 'SBJ Printex')</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" href="{{ asset('images/page1.png') }}" type="image/png">
     <style>
         :root {
             --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -418,7 +419,7 @@
     @auth
     <div class="mobile-header">
         <div class="brand">
-            <i class="fas fa-layer-group me-2"></i>Workflow
+            <i class="fas fa-layer-group me-2"></i>SBJ Printex
         </div>
         <button class="menu-toggle" id="menuToggle">
             <i class="fas fa-bars"></i>
@@ -431,10 +432,10 @@
     <!-- Sidebar -->
     <nav class="sidebar" id="sidebar">
         <div class="sidebar-header">
-            <div class="logo">
-                <i class="fas fa-layer-group"></i>
-            </div>
-            <h4>Workflow System</h4>
+            <!-- <div class="logo">
+                <img src="{{ asset('images/logo.png') }}" width="120" height="100">
+            </div> -->
+            <h4>SBJ Printex</h4>
             <small>{{ auth()->user()->name ?? 'User' }}</small>
             @if(auth()->user()->role)
                 <div>

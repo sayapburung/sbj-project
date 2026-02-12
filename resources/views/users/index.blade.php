@@ -8,12 +8,16 @@
     {{-- HEADER --}}
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h4 class="mb-0">Manajemen User</h4>
-        <a href="{{ route('users.create') }}" class="btn btn-primary">+ Tambah User</a>
+        <a href="{{ route('users.create') }}" class="btn btn-primary">
+            + Tambah User
+        </a>
     </div>
 
     {{-- ALERT SUCCESS --}}
     @if(session('success'))
-        <div class="alert alert-success">{{ session('success') }}</div>
+        <div class="alert alert-success">
+            {{ session('success') }}
+        </div>
     @endif
 
     {{-- FILTER SEARCH --}}
@@ -24,18 +28,23 @@
                    class="form-control"
                    placeholder="Cari nama user..."
                    value="{{ request('search') }}">
+
             <button class="btn btn-dark">Cari</button>
+
             @if(request('search'))
-                <a href="{{ route('users.index') }}" class="btn btn-secondary">Reset</a>
+                <a href="{{ route('users.index') }}" class="btn btn-secondary">
+                    Reset
+                </a>
             @endif
         </div>
     </form>
 
     {{-- TABEL USER --}}
-    <div class="card">
+    <div class="card shadow-sm">
         <div class="card-body p-0">
-            <div class="table-responsive"> {{-- <-- Tambahan Supaya Responsif --}}
-                <table class="table table-hover mb-0">
+
+            <div class="table-responsive">
+                <table class="table table-hover mb-0 align-middle">
                     <thead class="table-dark">
                         <tr>
                             <th style="width: 50px">#</th>
@@ -45,18 +54,25 @@
                             <th>Dibuat</th>
                             <th>Last Login</th>
                             <th>IP Address</th>
-                            <th style="width: 230px">Aksi</th>
+                            <th style="width: 260px">Aksi</th>
                         </tr>
                     </thead>
+
                     <tbody>
                         @forelse ($users as $i => $user)
                         <tr>
                             <td>{{ $users->firstItem() + $i }}</td>
+
                             <td>{{ $user->name }}</td>
+
                             <td>{{ $user->email }}</td>
+
                             <td>
-                                <span class="badge bg-success">{{ $user->role->name ?? '-' }}</span>
+                                <span class="badge bg-success">
+                                    {{ $user->role->name ?? '-' }}
+                                </span>
                             </td>
+
                             <td>{{ $user->created_at->format('d M Y') }}</td>
 
                             {{-- LAST LOGIN --}}
@@ -73,36 +89,43 @@
 
                             {{-- AKSI --}}
                             <td>
-                                <div class="btn-group btn-group-sm">
-                                    <a href="{{ route('users.edit', $user->id) }}" class="btn btn-warning">
+                                <div class="d-flex flex-wrap gap-1">
+
+                                    {{-- EDIT --}}
+                                    <a href="{{ route('users.edit', $user->id) }}"
+                                       class="btn btn-sm btn-warning">
                                         <i class="fas fa-edit"></i>
                                     </a>
 
-                                    <!-- Nonaktif / Aktifkan -->
+                                    {{-- AKTIF / NONAKTIF --}}
                                     <form action="{{ route('users.toggle', $user->id) }}" method="POST">
                                         @csrf
                                         @method('PUT')
-                                        <button class="btn btn-info"
-                                            onclick="return confirm('{{ $user->is_active ? 'Nonaktifkan user ini?' : 'Aktifkan user ini?' }}')">
+                                        <button type="submit"
+                                                class="btn btn-sm btn-info"
+                                                onclick="return confirm('{{ $user->is_active ? 'Nonaktifkan user ini?' : 'Aktifkan user ini?' }}')">
                                             {{ $user->is_active ? 'Nonaktifkan' : 'Aktifkan' }}
                                         </button>
                                     </form>
 
-                                    <!-- RESET PASSWORD -->
+                                    {{-- RESET PASSWORD --}}
                                     <form action="{{ route('users.resetPassword', $user->id) }}" method="POST">
                                         @csrf
                                         @method('PUT')
-                                        <button class="btn btn-secondary"
-                                            onclick="return confirm('Reset password user ke default?')">
+                                        <button type="submit"
+                                                class="btn btn-sm btn-secondary"
+                                                onclick="return confirm('Reset password user ke default?')">
                                             Reset
                                         </button>
                                     </form>
 
-                                    <!-- Hapus -->
-                                    <button class="btn btn-danger" data-bs-toggle="modal"
-                                        data-bs-target="#deleteModal{{ $user->id }}">
+                                    {{-- DELETE --}}
+                                    <button class="btn btn-sm btn-danger"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#deleteModal{{ $user->id }}">
                                         <i class="fas fa-trash"></i>
                                     </button>
+
                                 </div>
                             </td>
                         </tr>
@@ -111,38 +134,68 @@
                         <div class="modal fade" id="deleteModal{{ $user->id }}" tabindex="-1">
                             <div class="modal-dialog">
                                 <div class="modal-content">
+
                                     <div class="modal-header">
                                         <h5 class="modal-title">Konfirmasi Hapus</h5>
                                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                     </div>
+
                                     <div class="modal-body">
-                                        Apakah yakin ingin menghapus user <strong>{{ $user->name }}</strong>?
+                                        Apakah yakin ingin menghapus user
+                                        <strong>{{ $user->name }}</strong>?
                                     </div>
+
                                     <div class="modal-footer">
-                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                            Batal
+                                        </button>
+
                                         <form action="{{ route('users.destroy', $user->id) }}" method="POST">
-                                            @csrf @method('DELETE')
-                                            <button class="btn btn-danger">Hapus</button>
+                                            @csrf
+                                            @method('DELETE')
+                                            <button class="btn btn-danger">
+                                                Hapus
+                                            </button>
                                         </form>
                                     </div>
+
                                 </div>
                             </div>
                         </div>
 
                         @empty
                         <tr>
-                            <td colspan="8" class="text-center py-3">Belum ada data user.</td>
+                            <td colspan="8" class="text-center py-3">
+                                Belum ada data user.
+                            </td>
                         </tr>
                         @endforelse
                     </tbody>
                 </table>
             </div>
+
+            {{-- PAGINATION --}}
+            <div class="mt-3 mb-3 d-flex justify-content-center">
+                {{ $users->onEachSide(1)->links('pagination::bootstrap-5') }}
+            </div>
+
         </div>
     </div>
 
-    {{-- PAGINATION --}}
-    <div class="mt-3">
-        {{ $users->links() }}
-    </div>
 </div>
+
+{{-- CSS Tambahan --}}
+<style>
+    td form {
+        margin: 0;
+    }
+
+    .pagination {
+        font-size: 13px;
+    }
+
+    .pagination .page-link {
+        padding: 5px 10px;
+    }
+</style>
 @endsection

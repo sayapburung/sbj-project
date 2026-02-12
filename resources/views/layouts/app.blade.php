@@ -275,7 +275,13 @@
             background: white;
             box-shadow: var(--card-shadow);
         }
+        .pagination {
+        font-size: 13px;
+        }
 
+        .pagination .page-link {
+        padding: 4px 10px;
+        }
         .stage-card:hover {
             transform: translateY(-4px);
             box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);

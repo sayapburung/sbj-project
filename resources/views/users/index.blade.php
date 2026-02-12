@@ -52,10 +52,10 @@
                             <th>Nama</th>
                             <th>Email</th>
                             <th>Role</th>
+                            <th>Status</th>
                             <th>Dibuat</th>
                             <th>Last Login</th>
-                            <th>IP Address</th>
-                            <th style="width:130px;" class="text-center">Aksi</th>
+                            <th style="width:90px;" class="text-center">Aksi</th>
                         </tr>
                     </thead>
 
@@ -68,10 +68,35 @@
 
                             <td>{{ $user->email }}</td>
 
+                            {{-- ROLE BADGE WARNA --}}
                             <td>
-                                <span class="badge bg-success">
-                                    {{ $user->role->name ?? '-' }}
+                                @php
+                                    $role = $user->role->name ?? '-';
+
+                                    $roleClass = match($role) {
+                                        'Admin' => 'bg-danger',
+                                        'Manager' => 'bg-warning text-dark',
+                                        'Staff' => 'bg-primary',
+                                        default => 'bg-secondary'
+                                    };
+                                @endphp
+
+                                <span class="badge {{ $roleClass }}">
+                                    {{ $role }}
                                 </span>
+                            </td>
+
+                            {{-- STATUS ACTIVE / INACTIVE --}}
+                            <td>
+                                @if($user->is_active)
+                                    <span class="badge bg-success">
+                                        ✅ Active
+                                    </span>
+                                @else
+                                    <span class="badge bg-danger">
+                                        ❌ Inactive
+                                    </span>
+                                @endif
                             </td>
 
                             <td>{{ $user->created_at->format('d M Y') }}</td>
@@ -85,31 +110,28 @@
                                 @endif
                             </td>
 
-                            {{-- IP --}}
-                            <td>{{ $user->last_login_ip ?? '-' }}</td>
-
-                            {{-- AKSI DROPDOWN --}}
+                            {{-- ACTION DROPDOWN TITIK TIGA --}}
                             <td class="text-center">
 
                                 <div class="dropdown">
 
-                                    <button class="btn btn-sm btn-dark dropdown-toggle"
+                                    <button class="btn btn-sm btn-light border dropdown-toggle"
                                             type="button"
                                             data-bs-toggle="dropdown">
-                                        Action
+                                        ⋮
                                     </button>
 
-                                    <ul class="dropdown-menu">
+                                    <ul class="dropdown-menu dropdown-menu-end shadow-sm">
 
                                         {{-- EDIT --}}
                                         <li>
                                             <a class="dropdown-item"
                                                href="{{ route('users.edit', $user->id) }}">
-                                                ✏️ Edit
+                                                ✏️ Edit User
                                             </a>
                                         </li>
 
-                                        {{-- AKTIF/NONAKTIF --}}
+                                        {{-- AKTIF / NONAKTIF --}}
                                         <li>
                                             <form action="{{ route('users.toggle', $user->id) }}" method="POST">
                                                 @csrf
@@ -138,7 +160,7 @@
                                             <button class="dropdown-item text-danger"
                                                     data-bs-toggle="modal"
                                                     data-bs-target="#deleteModal{{ $user->id }}">
-                                                🗑️ Hapus
+                                                🗑️ Hapus User
                                             </button>
                                         </li>
 
@@ -159,7 +181,7 @@
                                     </div>
 
                                     <div class="modal-body">
-                                        Apakah yakin ingin menghapus user
+                                        Yakin ingin menghapus user
                                         <strong>{{ $user->name }}</strong>?
                                     </div>
 
@@ -204,10 +226,14 @@
     </div>
 </div>
 
-{{-- CSS Tambahan --}}
+{{-- CSS TAMBAHAN --}}
 <style>
     td form {
         margin: 0;
+    }
+
+    .dropdown-toggle::after {
+        display: none;
     }
 
     .pagination {

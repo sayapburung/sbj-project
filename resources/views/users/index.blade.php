@@ -45,16 +45,17 @@
 
             <div class="table-responsive">
                 <table class="table table-hover mb-0 align-middle">
+
                     <thead class="table-dark">
                         <tr>
-                            <th style="width: 50px">#</th>
+                            <th style="width:50px;">#</th>
                             <th>Nama</th>
                             <th>Email</th>
                             <th>Role</th>
                             <th>Dibuat</th>
                             <th>Last Login</th>
                             <th>IP Address</th>
-                            <th style="width: 260px">Aksi</th>
+                            <th style="width:130px;" class="text-center">Aksi</th>
                         </tr>
                     </thead>
 
@@ -87,46 +88,63 @@
                             {{-- IP --}}
                             <td>{{ $user->last_login_ip ?? '-' }}</td>
 
-                            {{-- AKSI --}}
-                            <td>
-                                <div class="d-flex flex-wrap gap-1">
+                            {{-- AKSI DROPDOWN --}}
+                            <td class="text-center">
 
-                                    {{-- EDIT --}}
-                                    <a href="{{ route('users.edit', $user->id) }}"
-                                       class="btn btn-sm btn-warning">
-                                        <i class="fas fa-edit"></i>
-                                    </a>
+                                <div class="dropdown">
 
-                                    {{-- AKTIF / NONAKTIF --}}
-                                    <form action="{{ route('users.toggle', $user->id) }}" method="POST">
-                                        @csrf
-                                        @method('PUT')
-                                        <button type="submit"
-                                                class="btn btn-sm btn-info"
-                                                onclick="return confirm('{{ $user->is_active ? 'Nonaktifkan user ini?' : 'Aktifkan user ini?' }}')">
-                                            {{ $user->is_active ? 'Nonaktifkan' : 'Aktifkan' }}
-                                        </button>
-                                    </form>
-
-                                    {{-- RESET PASSWORD --}}
-                                    <form action="{{ route('users.resetPassword', $user->id) }}" method="POST">
-                                        @csrf
-                                        @method('PUT')
-                                        <button type="submit"
-                                                class="btn btn-sm btn-secondary"
-                                                onclick="return confirm('Reset password user ke default?')">
-                                            Reset
-                                        </button>
-                                    </form>
-
-                                    {{-- DELETE --}}
-                                    <button class="btn btn-sm btn-danger"
-                                            data-bs-toggle="modal"
-                                            data-bs-target="#deleteModal{{ $user->id }}">
-                                        <i class="fas fa-trash"></i>
+                                    <button class="btn btn-sm btn-dark dropdown-toggle"
+                                            type="button"
+                                            data-bs-toggle="dropdown">
+                                        Action
                                     </button>
 
+                                    <ul class="dropdown-menu">
+
+                                        {{-- EDIT --}}
+                                        <li>
+                                            <a class="dropdown-item"
+                                               href="{{ route('users.edit', $user->id) }}">
+                                                ✏️ Edit
+                                            </a>
+                                        </li>
+
+                                        {{-- AKTIF/NONAKTIF --}}
+                                        <li>
+                                            <form action="{{ route('users.toggle', $user->id) }}" method="POST">
+                                                @csrf
+                                                @method('PUT')
+                                                <button type="submit" class="dropdown-item">
+                                                    {{ $user->is_active ? '🚫 Nonaktifkan' : '✅ Aktifkan' }}
+                                                </button>
+                                            </form>
+                                        </li>
+
+                                        {{-- RESET PASSWORD --}}
+                                        <li>
+                                            <form action="{{ route('users.resetPassword', $user->id) }}" method="POST">
+                                                @csrf
+                                                @method('PUT')
+                                                <button type="submit" class="dropdown-item">
+                                                    🔄 Reset Password
+                                                </button>
+                                            </form>
+                                        </li>
+
+                                        <li><hr class="dropdown-divider"></li>
+
+                                        {{-- DELETE --}}
+                                        <li>
+                                            <button class="dropdown-item text-danger"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#deleteModal{{ $user->id }}">
+                                                🗑️ Hapus
+                                            </button>
+                                        </li>
+
+                                    </ul>
                                 </div>
+
                             </td>
                         </tr>
 
@@ -146,7 +164,9 @@
                                     </div>
 
                                     <div class="modal-footer">
-                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                        <button type="button"
+                                                class="btn btn-secondary"
+                                                data-bs-dismiss="modal">
                                             Batal
                                         </button>
 
@@ -171,6 +191,7 @@
                         </tr>
                         @endforelse
                     </tbody>
+
                 </table>
             </div>
 
@@ -181,7 +202,6 @@
 
         </div>
     </div>
-
 </div>
 
 {{-- CSS Tambahan --}}

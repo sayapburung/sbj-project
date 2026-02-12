@@ -21,7 +21,7 @@ class UserController extends Controller
             $query->where('name', 'LIKE', '%' . $request->search . '%');
         }
 
-        $users = $query->paginate(5)->appends($request->only('search'));
+        $users = $query->paginate(10)->appends($request->only('search'));
 
         return view('users.index', compact('users'));
     }

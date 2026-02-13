@@ -55,7 +55,9 @@ class PurchaseOrderController extends Controller
             'tanggal_order' => 'required|date',
             'deadline' => 'required|date',
             'jenis_bahan' => 'required|string|max:255',
-        ]);
+        ],[
+        'images.*.max' => 'Maksimal ukuran gambar adalah 5MB per file.',
+            ]);
 
         $validated['po_number'] = PurchaseOrder::generatePoNumber();
         $validated['created_by'] = auth()->id();

@@ -132,7 +132,26 @@
                 </tbody>
             </table>
         </div>
-        {{ $orders->links() }}
+         <div class="mt-3 mb-3 d-flex justify-content-left">
+            {{ $orders->onEachSide(1)->links('pagination::bootstrap-5') }}
+        </div>
     </div>
 </div>
+<style>
+    td form {
+        margin: 0;
+    }
+
+    .dropdown-toggle::after {
+        display: none;
+    }
+
+    .pagination {
+        font-size: 13px;
+    }
+
+    .pagination .page-link {
+        padding: 5px 10px;
+    }
+</style>
 @endsection

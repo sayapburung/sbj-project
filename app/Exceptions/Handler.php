@@ -3,6 +3,7 @@
 namespace App\Exceptions;
 
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
+use Illuminate\Http\Exceptions\PostTooLargeException;
 use Throwable;
 
 class Handler extends ExceptionHandler
@@ -21,10 +22,14 @@ class Handler extends ExceptionHandler
     /**
      * Register the exception handling callbacks for the application.
      */
-    public function register(): void
-    {
-        $this->reportable(function (Throwable $e) {
-            //
+        public function register(): void
+        {
+        $this->renderable(function (PostTooLargeException $e, $request) {
+    
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('error', 'Upload gagal! Maksimal ukuran file adalah 5MB per file.');
         });
-    }
+        }           
 }

@@ -3,6 +3,16 @@
 @section('title', 'Tambah Purchase Order')
 
 @section('content')
+@if ($errors->any())
+    <div class="alert alert-danger">
+        <b>Upload gagal:</b>
+        <ul class="mb-0">
+            @foreach ($errors->all() as $error)
+                <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+    </div>
+@endif
 <div class="row justify-content-center">
     <div class="col-md-8">
         <div class="card">

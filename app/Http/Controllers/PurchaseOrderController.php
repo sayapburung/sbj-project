@@ -18,25 +18,24 @@ class PurchaseOrderController extends Controller
     }
 
     public function index(Request $request)
-    {
-        $query = PurchaseOrder::with(['images', 'files'])->where('active', 1);
+{
+    $query = PurchaseOrder::with(['images', 'files'])
+                ->where('active', 1);
 
-        if ($request->filled('nama_konsumen')) {
-            $query->where('nama_konsumen', 'like', '%' . $request->nama_konsumen . '%');
-        }
+    if ($request->filled('search')) {
+        $search = $request->search;
 
-        if ($request->filled('jenis_po')) {
-            $query->where('jenis_po', 'like', '%' . $request->jenis_po . '%');
-        }
-
-        if ($request->filled('deadline_from') && $request->filled('deadline_to')) {
-            $query->whereBetween('deadline', [$request->deadline_from, $request->deadline_to]);
-        }
-
-        $orders = $query->orderBy('created_at', 'desc')->paginate(100);
-
-        return view('purchase-orders.index', compact('orders'));
+        $query->where(function ($q) use ($search) {
+            $q->where('nama_konsumen', 'like', "%{$search}%")
+              ->orWhere('jenis_po', 'like', "%{$search}%")
+              ->orWhereDate('deadline', $search);
+        });
     }
+
+    $orders = $query->orderBy('created_at', 'desc')->paginate(100);
+
+    return view('purchase-orders.index', compact('orders'));
+}
 
     public function create()
     {
@@ -57,6 +56,7 @@ class PurchaseOrderController extends Controller
             'jenis_bahan' => 'required|string|max:255',
         ],[
         'images.*.max' => 'Maksimal ukuran gambar adalah 5MB per file.',
+        'file.max' => 'Ukuran file maksimal 10MB.',
             ]);
 
         $validated['po_number'] = PurchaseOrder::generatePoNumber();

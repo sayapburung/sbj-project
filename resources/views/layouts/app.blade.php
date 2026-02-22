@@ -34,7 +34,6 @@
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             background: #f8f9fc;
-            overflow-x: hidden;
         }
 
         /* ===== TOP BAR (always visible on desktop & mobile) ===== */
@@ -269,6 +268,8 @@
             padding-bottom: 24px;
             min-height: 100vh;
             transition: margin-left var(--transition);
+            /* CRITICAL: must NOT be hidden/auto — let children scroll themselves */
+            overflow-x: visible;
         }
 
         .main-content.sidebar-collapsed {
@@ -287,11 +288,13 @@
             background: rgba(0,0,0,0.5);
             z-index: 999;
             opacity: 0;
+            pointer-events: none;
             transition: opacity 0.3s;
         }
 
         .sidebar-overlay.active {
             opacity: 1;
+            pointer-events: auto;
         }
 
         /* ===== MOBILE ===== */
@@ -315,11 +318,13 @@
             .sidebar-overlay {
                 display: block;
                 z-index: 1000;
+                pointer-events: none;  /* only clickable when .active */
             }
 
             .main-content {
                 margin-left: 0 !important;
                 padding: calc(var(--topbar-height) + 16px) 16px 16px;
+                overflow-x: visible;
             }
 
             .topbar-toggle {
@@ -505,7 +510,7 @@
 @endauth
 
 <!-- Main Content -->
-<main class="main-content @guest full-width @endguest" id="mainContent">
+<main class="main-content @guest full-width @endguest" id="mainContent" style="overflow-x: visible;">
     @yield('content')
 </main>
 

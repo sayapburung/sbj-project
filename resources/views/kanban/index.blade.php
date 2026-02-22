@@ -89,22 +89,22 @@
 <div class="card mb-4">
     <div class="card-body">
         <form method="GET" action="{{ route('kanban.index') }}">
-            <div class="row g-3">
-                <div class="col-md-3">
-                    <input type="text" name="nama_konsumen" class="form-control" placeholder="Nama Konsumen" value="{{ request('nama_konsumen') }}">
-                </div>
-                <div class="col-md-3">
-                    <input type="text" name="jenis_po" class="form-control" placeholder="Jenis PO" value="{{ request('jenis_po') }}">
-                </div>
-                <div class="col-md-2">
-                    <input type="date" name="deadline_from" class="form-control" value="{{ request('deadline_from') }}">
-                </div>
-                <div class="col-md-2">
-                    <input type="date" name="deadline_to" class="form-control" value="{{ request('deadline_to') }}">
-                </div>
-                <div class="col-md-2">
-                    <button type="submit" class="btn btn-primary w-100"><i class="fas fa-search"></i> Filter</button>
-                </div>
+            <div class="input-group">
+                <input type="text" 
+                       name="search" 
+                       class="form-control" 
+                       placeholder="Cari Data"
+                       value="{{ request('search') }}">
+                
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-search"></i> Cari
+                </button>
+
+                @if(request('search'))
+                    <a href="{{ url()->current() }}" class="btn btn-outline-secondary">
+                        Reset
+                    </a>
+                @endif
             </div>
         </form>
     </div>
@@ -163,6 +163,9 @@
                     <div class="kanban-card-meta">
                         <i class="fas fa-calendar"></i> {{ $order->deadline->format('d/m/Y') }}
                     </div>
+                        <div class="kanban-card-meta">
+                        <i class="fas fa-tag"></i> {{ $order->jenis_po }}
+                    </div>
                     <span class="badge" style="background-color: {{ $order->stage_status == 'selesai' ? '#28a745' : ($order->stage_status == 'progress' ? '#ffc107' : '#6c757d') }}">
                         {{ ucfirst($order->stage_status) }}
                     </span>
@@ -196,6 +199,9 @@
                     <div class="kanban-card-meta">
                         <i class="fas fa-user"></i> {{ $order->nama_konsumen }}
                     </div>
+                        <div class="kanban-card-meta">
+                        <i class="fas fa-tag"></i> {{ $order->jenis_po }}
+                    </div>
                     <div class="kanban-card-meta">
                         <i class="fas fa-calendar"></i> {{ $order->deadline->format('d/m/Y') }}
                     </div>
@@ -227,6 +233,9 @@
                     <div class="kanban-card-meta">
                         <i class="fas fa-user"></i> {{ $order->nama_konsumen }}
                     </div>
+                        <div class="kanban-card-meta">
+                        <i class="fas fa-tag"></i> {{ $order->jenis_po }}
+                    </div>
                     <div class="kanban-card-meta">
                         <i class="fas fa-calendar"></i> {{ $order->deadline->format('d/m/Y') }}
                     </div>
@@ -252,6 +261,9 @@
                         <i class="fas fa-user"></i> {{ $order->nama_konsumen }}
                     </div>
                     <div class="kanban-card-meta">
+                        <i class="fas fa-tag"></i> {{ $order->jenis_po }}
+                    </div>
+                    <div class="kanban-card-meta">
                         <i class="fas fa-calendar"></i> {{ $order->deadline->format('d/m/Y') }}
                     </div>
                     <span class="badge" style="background-color: {{ $order->stage_status == 'approved' ? '#28a745' : ($order->stage_status == 'rejected' ? '#dc3545' : '#6c757d') }}">
@@ -274,6 +286,9 @@
                     <div class="kanban-card-title">{{ $order->po_number }}</div>
                     <div class="kanban-card-meta">
                         <i class="fas fa-user"></i> {{ $order->nama_konsumen }}
+                    </div>
+                        <div class="kanban-card-meta">
+                        <i class="fas fa-tag"></i> {{ $order->jenis_po }}
                     </div>
                     <div class="kanban-card-meta">
                         <i class="fas fa-calendar"></i> {{ $order->deadline->format('d/m/Y') }}
@@ -333,29 +348,80 @@ function showDetail(id) {
                 <div class="tab-content mt-3" id="detailTabsContent">
                     <!-- Tab Info -->
                     <div class="tab-pane fade show active" id="info" role="tabpanel">
-                        <div class="row">
+                        
+                        <div class="row g-4">
+
+                            <!-- Left Column -->
                             <div class="col-md-6">
-                                <h6><strong>No PO:</strong> ${data.po_number}</h6>
-                                <p><strong>Konsumen:</strong> ${data.nama_konsumen}</p>
-                                <p><strong>Jenis PO:</strong> ${data.jenis_po}</p>
-                                <p><strong>Jenis Bahan:</strong> ${data.jenis_bahan}</p>
+                                <div class="info-group">
+                                    <div class="mb-2">
+                                        <small class="text-muted">No PO</small>
+                                        <div class="fw-semibold">${data.po_number}</div>
+                                    </div>
+
+                                    <div class="mb-2">
+                                        <small class="text-muted">Konsumen</small>
+                                        <div class="fw-semibold">${data.nama_konsumen}</div>
+                                    </div>
+
+                                    <div class="mb-2">
+                                        <small class="text-muted">Jenis PO</small>
+                                        <div class="fw-semibold">${data.jenis_po}</div>
+                                    </div>
+
+                                    <div>
+                                        <small class="text-muted">Jenis Bahan</small>
+                                        <div class="fw-semibold">${data.jenis_bahan}</div>
+                                    </div>
+                                </div>
                             </div>
+
+                            <!-- Right Column -->
                             <div class="col-md-6">
-                                <p><strong>Jumlah:</strong> ${data.jumlah}</p>
-                                <p><strong>Meteran:</strong> ${data.meteran}</p>
-                                <p><strong>Tanggal Order:</strong> ${new Date(data.tanggal_order).toLocaleDateString('id-ID')}</p>
-                                <p><strong>Deadline:</strong> ${new Date(data.deadline).toLocaleDateString('id-ID')}</p>
+                                <div class="info-group">
+                                    <div class="mb-2">
+                                        <small class="text-muted">Jumlah</small>
+                                        <div class="fw-semibold">${data.jumlah}</div>
+                                    </div>
+
+                                    <div class="mb-2">
+                                        <small class="text-muted">Meteran</small>
+                                        <div class="fw-semibold">${data.meteran}</div>
+                                    </div>
+
+                                    <div class="mb-2">
+                                        <small class="text-muted">Tanggal Order</small>
+                                        <div class="fw-semibold">
+                                            ${new Date(data.tanggal_order).toLocaleDateString('id-ID')}
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <small class="text-muted">Deadline</small>
+                                        <div class="fw-semibold text-danger">
+                                            ${new Date(data.deadline).toLocaleDateString('id-ID')}
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
+
                         </div>
-                        <hr>
-                        <div class="row">
-                            <div class="col-12">
-                                <p><strong>Status:</strong> 
-                                    <span class="badge bg-primary">${data.current_stage}</span> 
-                                    <span class="badge bg-info">${data.stage_status}</span>
-                                </p>
-                            </div>
+
+                        <hr class="my-4">
+
+                        <!-- Status Section -->
+                        <div>
+                            <small class="text-muted d-block mb-2">Status</small>
+                            <span class="badge bg-primary px-3 py-2 me-2">
+                                ${data.current_stage}
+                            </span>
+                            <span class="badge bg-info text-dark px-3 py-2">
+                                ${data.stage_status}
+                            </span>
                         </div>
+
+                    </div>
+                </div>
             `;
             
             if (data.stage_inputs) {

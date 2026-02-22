@@ -16,17 +16,16 @@ class KanbanController extends Controller
     {
         $query = PurchaseOrder::with(['images', 'files', 'stageInputs'])->where('active', 1);
 
-        if ($request->filled('nama_konsumen')) {
-            $query->where('nama_konsumen', 'like', '%' . $request->nama_konsumen . '%');
-        }
+            if ($request->filled('search')) {
+        $search = $request->search;
 
-        if ($request->filled('jenis_po')) {
-            $query->where('jenis_po', 'like', '%' . $request->jenis_po . '%');
-        }
-
-        if ($request->filled('deadline_from') && $request->filled('deadline_to')) {
-            $query->whereBetween('deadline', [$request->deadline_from, $request->deadline_to]);
-        }
+        $query->where(function ($q) use ($search) {
+            $q->where('nama_konsumen', 'like', "%{$search}%")
+              ->orWhere('jenis_po', 'like', "%{$search}%")
+              ->orWhereDate('deadline', $search)
+              ->orWhere('po_number', 'like', "%{$search}%");
+        });
+    }
 
         $orders = $query->orderBy('created_at', 'desc')->get();
 

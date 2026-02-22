@@ -103,4 +103,10 @@ public function getUnresolvedRejectionCountAttribute()
 {
     return $this->unresolvedRejections()->count();
 }
+protected static function booted()
+{
+    static::saving(function ($model) {
+        $model->nama_konsumen = strtoupper($model->nama_konsumen);
+    });
+}
 }

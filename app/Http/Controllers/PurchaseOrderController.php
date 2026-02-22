@@ -45,6 +45,11 @@ class PurchaseOrderController extends Controller
 
     public function store(Request $request)
     {
+        // Pastikan action selalu ada
+        $request->merge([
+            'action' => $request->action ?? 'save'
+        ]);
+
         $validated = $request->validate([
             'nama_konsumen' => 'required|string|max:255',
             'jenis_po' => 'required|string|max:255',
@@ -56,55 +61,75 @@ class PurchaseOrderController extends Controller
             'deadline' => 'required|date',
             'jenis_bahan' => 'required|string|max:255',
         ],[
-        'images.*.max' => 'Maksimal ukuran gambar adalah 5MB per file.',
-        'file.max' => 'Ukuran file maksimal 10MB.',
-            ]);
+            'images.*.max' => 'Maksimal ukuran gambar adalah 5MB per file.',
+            'file.max' => 'Ukuran file maksimal 10MB.',
+        ]);
 
+        // Generate nomor PO & user
         $validated['po_number'] = PurchaseOrder::generatePoNumber();
         $validated['created_by'] = auth()->id();
-        $validated['current_stage'] = 'waiting_list';
-        $validated['stage_status'] = 'pending';
         $validated['active'] = 1;
         $validated['jumlah'] = $request->jumlah ?? 0;
         $validated['meteran'] = $request->meteran ?? 0;
 
+        // Default stage
+        $currentStage = 'waiting_list';
+        $stageStatus  = 'pending';
+
+        // Jika klik "Simpan & Kirim ke Desain"
+        if ($request->action === 'kirim_desain') {
+            $currentStage = 'desain';
+            $stageStatus  = 'pending';
+        }
+
+        $validated['current_stage'] = $currentStage;
+        $validated['stage_status']  = $stageStatus;
+
+        // Upload file utama
         if ($request->hasFile('file')) {
             $validated['file'] = $request->file('file')->store('po-files', 'public');
         }
 
+        // Simpan PO
         $po = PurchaseOrder::create($validated);
-        // OrderHistory::recordCreation($po->id);
+
+        // Record history
         OrderHistory::recordTransition(
-        $po->id,
-        null,
-        'waiting_list',
-        null,
-        'pending',
-        'Purchase Order dibuat'
-);
+            $po->id,
+            null,
+            $currentStage,
+            null,
+            $stageStatus,
+            $request->action === 'kirim_desain'
+                ? 'Purchase Order dibuat & langsung dikirim ke desain'
+                : 'Purchase Order dibuat'
+        );
 
         // Upload multiple images
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $image) {
                 $path = $image->store('po-images', 'public');
+
                 PoImage::create([
                     'po_id' => $po->id,
                     'image_path' => $path,
                     'original_name' => $image->getClientOriginalName(),
-                    'uploaded_from_stage' => 'purchase_order', // TAMBAHAN
-                    'uploaded_by' => auth()->id(),              // TAMBAHAN
+                    'uploaded_from_stage' => 'purchase_order',
+                    'uploaded_by' => auth()->id(),
                 ]);
             }
         }
 
-        return redirect()->route('purchase-orders.index')->with('success', 'Purchase Order berhasil dibuat');
+        return redirect()
+            ->route('purchase-orders.index')
+            ->with('success', 'Purchase Order berhasil dibuat');
     }
 
-public function edit($id)
-{
-    $order = PurchaseOrder::with(['images', 'files', 'histories.user'])->findOrFail($id);
-    return view('purchase-orders.edit', compact('order'));
-}
+    public function edit($id)
+    {
+        $order = PurchaseOrder::with(['images', 'files', 'histories.user'])->findOrFail($id);
+        return view('purchase-orders.edit', compact('order'));
+    }
 
     public function update(Request $request, $id)
     {

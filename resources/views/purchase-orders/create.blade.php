@@ -22,11 +22,18 @@
             <div class="card-body">
                 <form method="POST" action="{{ route('purchase-orders.store') }}" enctype="multipart/form-data">
                     @csrf
-                    <div class="mb-3">
-                        <label class="form-label">Nama Konsumen *</label>
-                        <input type="text" name="nama_konsumen" class="form-control @error('nama_konsumen') is-invalid @enderror" value="{{ old('nama_konsumen') }}" required>
-                        @error('nama_konsumen')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                    </div>
+<div class="mb-3">
+    <label class="form-label">Nama Konsumen *</label>
+    <input type="text"
+           name="nama_konsumen"
+           class="form-control @error('nama_konsumen') is-invalid @enderror"
+           value="{{ old('nama_konsumen') }}"
+           oninput="this.value = this.value.toUpperCase()"
+           required>
+    @error('nama_konsumen')
+        <div class="invalid-feedback">{{ $message }}</div>
+    @enderror
+</div>
 
                     <div class="mb-3">
     <label class="form-label fw-bold">Jenis PO *</label>
@@ -178,6 +185,9 @@
                     <div class="d-flex gap-2">
                         <button type="submit" class="btn btn-primary">
                             <i class="fas fa-save"></i> Simpan
+                        </button>
+                        <button type="submit" name="action" value="kirim_desain" class="btn btn-success">
+                            <i class="fas fa-paper-plane"></i> Simpan & Kirim ke Desain
                         </button>
                         <a href="{{ route('purchase-orders.index') }}" class="btn btn-secondary">
                             <i class="fas fa-arrow-left"></i> Kembali

@@ -28,7 +28,8 @@ class PurchaseOrderController extends Controller
         $query->where(function ($q) use ($search) {
             $q->where('nama_konsumen', 'like', "%{$search}%")
               ->orWhere('jenis_po', 'like', "%{$search}%")
-              ->orWhereDate('deadline', $search);
+              ->orWhereDate('deadline', $search)
+              ->orWhere('po_number', 'like', "%{$search}%");
         });
     }
 

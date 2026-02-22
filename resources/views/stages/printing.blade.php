@@ -12,22 +12,22 @@
 <div class="card mb-4">
     <div class="card-body">
         <form method="GET" action="{{ route('printing.index') }}">
-            <div class="row g-3">
-                <div class="col-md-3">
-                    <input type="text" name="nama_konsumen" class="form-control" placeholder="Nama Konsumen" value="{{ request('nama_konsumen') }}">
-                </div>
-                <div class="col-md-3">
-                    <input type="text" name="jenis_po" class="form-control" placeholder="Jenis PO" value="{{ request('jenis_po') }}">
-                </div>
-                <div class="col-md-2">
-                    <input type="date" name="deadline_from" class="form-control" placeholder="Dari" value="{{ request('deadline_from') }}">
-                </div>
-                <div class="col-md-2">
-                    <input type="date" name="deadline_to" class="form-control" placeholder="Sampai" value="{{ request('deadline_to') }}">
-                </div>
-                <div class="col-md-2">
-                    <button type="submit" class="btn btn-primary w-100"><i class="fas fa-search"></i> Filter</button>
-                </div>
+            <div class="input-group">
+                <input type="text" 
+                       name="search" 
+                       class="form-control" 
+                       placeholder="Cari Data"
+                       value="{{ request('search') }}">
+                
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-search"></i> Cari
+                </button>
+
+                @if(request('search'))
+                    <a href="{{ url()->current() }}" class="btn btn-outline-secondary">
+                        Reset
+                    </a>
+                @endif
             </div>
         </form>
     </div>

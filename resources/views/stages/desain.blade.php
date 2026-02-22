@@ -17,7 +17,7 @@
                 <input type="text" 
                        name="search" 
                        class="form-control" 
-                       placeholder="Cari nama konsumen, jenis PO, atau tanggal (YYYY-MM-DD)..."
+                       placeholder="Cari Data"
                        value="{{ request('search') }}">
                 
                 <button type="submit" class="btn btn-primary">

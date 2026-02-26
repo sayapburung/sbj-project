@@ -22,6 +22,38 @@
             <div class="card-body">
                 <form method="POST" action="{{ route('purchase-orders.store') }}" enctype="multipart/form-data">
                     @csrf
+
+    <div class="mb-3">
+    <label class="form-label fw-bold">Jenis PO *</label>
+
+    <select name="jenis_po_id" class="form-control">
+    <option value="" disabled selected>— Pilih Jenis PO —</option>
+
+    @foreach($jenisPos->groupBy('kategori') as $kategori => $items)
+        <optgroup label="{{ $kategori }}">
+            @foreach($items as $item)
+                <option value="{{ $item->id }}" {{ old('jenis_po_id') == $item->id ? 'selected' : '' }}>
+                {{ $item->nama }}
+                </option>
+            @endforeach
+        </optgroup>
+    @endforeach
+</select>
+    @error('jenis_po')
+        <div class="invalid-feedback">{{ $message }}</div>
+    @enderror
+</div>
+<div class="mb-3">
+    <label class="form-label fw-bold">Nomor PO</label>
+    <input type="text"
+           id="poNumberPreview"
+           class="form-control"
+           readonly>
+    <small class="text-muted">
+        Nomor otomatis berdasarkan Jenis PO & bulan berjalan
+    </small>
+</div>
+
 <div class="mb-3">
     <label class="form-label">Nama Konsumen *</label>
     <input type="text"
@@ -34,69 +66,20 @@
         <div class="invalid-feedback">{{ $message }}</div>
     @enderror
 </div>
-
-                    <div class="mb-3">
-    <label class="form-label fw-bold">Jenis PO *</label>
-
-    <select name="jenis_po" 
-            class="form-select @error('jenis_po') is-invalid @enderror" 
-            required>
-
-        <option value="" disabled selected>— Pilih Jenis PO —</option>
-
-        <!-- Kategori PRINTING -->
-        <optgroup label="📌 Printing">
-            <option value="Print Only" {{ old('jenis_po') == 'Print Only' ? 'selected' : '' }}>
-                Print Only
-            </option>
-            <option value="Print Press" {{ old('jenis_po') == 'Print Press' ? 'selected' : '' }}>
-                Print Press
-            </option>
-            <option value="Print Press + Bahan" {{ old('jenis_po') == 'Print Press + Bahan' ? 'selected' : '' }}>
-                Print Press + Bahan
-            </option>
-            <option value="Print Press + Laser" {{ old('jenis_po') == 'Print Press + Laser' ? 'selected' : '' }}>
-                Print Press + Laser
-            </option>
-            <option value="Print Press + Bahan + Laser" {{ old('jenis_po') == 'Print Press + Bahan + Laser' ? 'selected' : '' }}>
-                Print Press + Bahan + Laser
-            </option>
-        </optgroup>
-
-        <!-- Kategori FULL ORDER -->
-        <optgroup label="🧥 Full Order">
-            <option value="Full Order Jaket" {{ old('jenis_po') == 'Full Order Jaket' ? 'selected' : '' }}>
-                Full Order Jaket
-            </option>
-            <option value="Full Order Atasan" {{ old('jenis_po') == 'Full Order Atasan' ? 'selected' : '' }}>
-                Full Order Atasan
-            </option>
-            <option value="Full Order Stelan Pendek" {{ old('jenis_po') == 'Full Order Stelan Pendek' ? 'selected' : '' }}>
-                Full Order Stelan Pendek
-            </option>
-            <option value="Full Order Stelan Panjang" {{ old('jenis_po') == 'Full Order Stelan Panjang' ? 'selected' : '' }}>
-                Full Order Stelan Panjang
-            </option>
-            <option value="Full Order Stelan Panjang dan Pendek" {{ old('jenis_po') == 'Full Order Stelan Panjang dan Pendek' ? 'selected' : '' }}>
-                Full Order Stelan Panjang dan Pendek
-            </option>
-            <option value="Full Order Stelan & Atasan" {{ old('jenis_po') == 'Full Order Stelan & Atasan' ? 'selected' : '' }}>
-                Full Order Stelan & Atasan
-            </option>
-            <option value="Full Order Celana Pendek" {{ old('jenis_po') == 'Full Order Celana Pendek' ? 'selected' : '' }}>
-                Full Order Celana Pendek
-            </option>
-            <option value="Full Order Celana Panjang" {{ old('jenis_po') == 'Full Order Celana Panjang' ? 'selected' : '' }}>
-                Full Order Celana Panjang
-            </option>
-        </optgroup>
-
-    </select>
-
-    @error('jenis_po')
+<div class="mb-3">
+    <label class="form-label">Nama PO *</label>
+    <input type="text"
+           name="nama_po"
+           class="form-control @error('nama_po') is-invalid @enderror"
+           value="{{ old('nama_po') }}"
+           oninput="this.value = this.value.toUpperCase()"
+           required>
+    @error('nama_po')
         <div class="invalid-feedback">{{ $message }}</div>
     @enderror
 </div>
+
+
 
                     <div class="mb-3">
                         <label class="form-label">Jenis Bahan *</label>
@@ -128,7 +111,7 @@
                             @error('deadline')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
                     </div>
-                    <div class="mb-3">
+                    <!-- <div class="mb-3">
                         <label class="form-label">File</label>
 
                         <input type="file"
@@ -145,7 +128,7 @@
                         @enderror
 
                         <div id="fileError" class="text-danger mt-1" style="display:none;"></div>
-                    </div>
+                    </div> -->
                     <div class="mb-3">
                         <label class="form-label">Gambar Desain (Multi Upload)</label>
 
@@ -328,6 +311,22 @@
 
         fileInput.files = dataTransfer.files;
     }
+    document.querySelector('select[name="jenis_po_id"]').addEventListener('change', function () {
+
+    const jenisPoId = this.value;
+    const previewField = document.getElementById('poNumberPreview');
+
+    if (!jenisPoId) {
+        previewField.value = '';
+        return;
+    }
+
+    fetch(`/generate-po-preview/${jenisPoId}`)
+        .then(response => response.json())
+        .then(data => {
+            previewField.value = data.po_number;
+        });
+});
 </script>
 
 <style>

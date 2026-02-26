@@ -485,6 +485,16 @@
                 </li>
                 @endif
 
+                @if(auth()->user()->hasPermission('master_jenis_po'))
+                <li class="nav-item">
+                    <a class="nav-link {{ request()->routeIs('jenis-po.*') ? 'active' : '' }}"
+                    href="{{ route('jenis-po.index') }}" data-tooltip="Master Jenis PO">
+                        <i class="fas fa-tags"></i>
+                        <span>Master Jenis PO</span>
+                    </a>
+                </li>
+                @endif
+
             </ul>
         </div>
         @endif

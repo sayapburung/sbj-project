@@ -17,6 +17,7 @@ use App\Http\Controllers\CompletedOrderController;
 
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\RoleController;
+use App\Http\Controllers\JenisPoController;
 
 Auth::routes(['register' => false]);
 
@@ -99,6 +100,15 @@ Route::middleware(['auth'])->group(function () {
         Route::resource('roles', RoleController::class);
     });
 
+    /*
+    |--------------------------------------------------------------------------
+    | ✅ Master Jenis PO (ADMIN ONLY)
+    |--------------------------------------------------------------------------
+    */
+    Route::middleware(['permission:master_jenis_po'])->group(function () {
+        Route::resource('jenis-po', JenisPoController::class);
+    });
+
 
     /*
     |--------------------------------------------------------------------------
@@ -111,6 +121,8 @@ Route::middleware(['auth'])->group(function () {
 
         Route::get('purchase-orders/{id}/print-spk', [PurchaseOrderController::class, 'printSpk'])
             ->name('purchase-orders.print-spk');
+        
+        Route::get('/generate-po-preview/{jenisPo}', [PurchaseOrderController::class, 'previewPoNumber']);
 
         Route::post('purchase-orders/{id}/move', [PurchaseOrderController::class, 'moveToStage'])
             ->name('purchase-orders.move');

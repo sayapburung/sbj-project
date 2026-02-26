@@ -11,7 +11,9 @@ return new class extends Migration
         Schema::create('purchase_orders', function (Blueprint $table) {
             $table->id();
             $table->string('po_number')->unique();
-            $table->string('nama_konsumen');
+            $table->foreignId('jenis_po_id')
+                ->constrained('jenis_pos')
+                ->onDelete('restrict');
             $table->string('jenis_po');
             $table->string('file')->nullable();
             $table->integer('jumlah')->default(0);

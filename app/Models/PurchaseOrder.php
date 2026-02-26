@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
 class PurchaseOrder extends Model
@@ -12,7 +13,9 @@ class PurchaseOrder extends Model
 
     protected $fillable = [
         'po_number', 
-        'nama_konsumen', 
+        'nama_konsumen',
+        'nama_po', 
+        'jenis_po_id',
         'jenis_po', 
         'file', 
         'jumlah', 
@@ -59,12 +62,38 @@ class PurchaseOrder extends Model
         return $this->belongsTo(User::class, 'created_by');
     }
 
-    public static function generatePoNumber()
-    {
-        $date = date('Ymd');
-        $count = self::whereDate('created_at', Carbon::today())->count() + 1;
-        return 'PO-' . $date . '-' . str_pad($count, 4, '0', STR_PAD_LEFT);
-    }
+public static function generatePoNumber($jenisPoId)
+{
+    return DB::transaction(function () use ($jenisPoId) {
+
+        $jenisPo = \App\Models\JenisPo::findOrFail($jenisPoId);
+
+        $kode = strtoupper($jenisPo->kode); // PRT
+
+        $now = Carbon::now();
+        $year = $now->format('y');   // 26
+        $month = $now->format('m');  // 02
+
+        $prefix = $kode . '-' . $year . $month;
+
+        // Ambil PO terakhir bulan ini berdasarkan prefix
+        $lastPo = self::where('po_number', 'like', $prefix . '-%')
+            ->lockForUpdate() // 
+            ->orderByDesc('id')
+            ->first();
+
+        $lastNumber = 0;
+
+        if ($lastPo) {
+            $parts = explode('-', $lastPo->po_number);
+            $lastNumber = (int) end($parts);
+        }
+
+        $newCounter = str_pad($lastNumber + 1, 3, '0', STR_PAD_LEFT);
+
+        return $prefix . '-' . $newCounter;
+    });
+}
 
     public function histories()
 {
@@ -109,4 +138,8 @@ protected static function booted()
         $model->nama_konsumen = strtoupper($model->nama_konsumen);
     });
 }
+public function jenisPo()
+    {
+        return $this->belongsTo(JenisPo::class);
+    }
 }

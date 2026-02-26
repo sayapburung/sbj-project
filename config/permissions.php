@@ -21,6 +21,7 @@ return [
         // Manajemen Admin
         'user_management'  => 'Manajemen User',
         'role_management'  => 'Manajemen Role',
+        'master_jenis_po'  => 'Master Jenis PO',
 
         // Tambahan kalau ada
         'analytics'        => 'Analytics / Reports',

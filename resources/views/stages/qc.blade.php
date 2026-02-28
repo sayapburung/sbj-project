@@ -146,16 +146,29 @@
                     @csrf
                     <label class="form-label small"><strong>Status QC:</strong></label>
                     <div class="input-group mb-2">
-                        <select name="stage_status" class="form-select form-select-sm" id="qcStatus{{ $order->id }}" required 
-                                onchange="toggleRejectionForm({{ $order->id }})">
-                            <option value="">Pilih Status</option>
-                            <option value="pending" {{ $order->stage_status == 'pending' ? 'selected' : '' }}>Pending Review</option>
-                            <option value="approved" {{ $order->stage_status == 'approved' ? 'selected' : '' }}>✓ Approved</option>
-                            <option value="rejected" {{ $order->stage_status == 'rejected' ? 'selected' : '' }}>✗ Rejected</option>
-                        </select>
-                        <button type="submit" class="btn btn-sm btn-primary">
-                            <i class="fas fa-save"></i> Update
-                        </button>
+                        <input type="hidden" name="stage_status" id="qcStatusInput{{ $order->id }}">
+                    <div class="d-flex gap-2 flex-wrap">
+
+    <!-- Pending -->
+ <button type="submit"
+        onclick="setQCStatus({{ $order->id }}, 'pending')"
+        class="btn btn-sm btn-outline-secondary">
+    ⏳ Pending
+</button>
+
+<button type="submit"
+        onclick="setQCStatus({{ $order->id }}, 'approved')"
+        class="btn btn-sm btn-outline-success">
+    ✓ Approved
+</button>
+
+<button type="button"
+        onclick="setQCStatus({{ $order->id }}, 'rejected')"
+        class="btn btn-sm btn-outline-danger">
+    ✗ Rejected
+</button>
+
+</div>
                     </div>
 
                     <!-- FORM REJECTION (Hidden by default) -->
@@ -186,6 +199,9 @@
                                 <textarea name="rejection_notes" class="form-control form-control-sm" rows="2" 
                                           placeholder="Detail masalah yang ditemukan..."></textarea>
                             </div>
+                            <button type="submit" class="btn btn-danger btn-sm">
+                                            Kirim Reject
+                                        </button>
                         </div>
                     </div>
                 </form>
@@ -238,21 +254,57 @@
 @push('scripts')
 <script>
 function toggleRejectionForm(orderId) {
-    const select = document.getElementById('qcStatus' + orderId);
+
+    const statusInput = document.getElementById('qcStatusInput' + orderId);
     const form = document.getElementById('rejectionForm' + orderId);
-    
-    if (select.value === 'rejected') {
+
+    if (!statusInput || !form) return;
+
+    if (statusInput.value === 'rejected') {
+
         form.style.display = 'block';
+
         // Make fields required
         form.querySelectorAll('select[name="rejection_reason"], select[name="severity"]').forEach(el => {
             el.required = true;
         });
+
     } else {
+
         form.style.display = 'none';
+
         // Remove required
         form.querySelectorAll('select[name="rejection_reason"], select[name="severity"]').forEach(el => {
             el.required = false;
         });
+    }
+}
+function setRejected(orderId) {
+
+    const input = document.getElementById('qcStatusInput' + orderId);
+
+    if (!input) return;
+
+    input.value = 'rejected';
+
+    toggleRejectionForm(orderId);
+}
+function setQCStatus(orderId, status) {
+
+    const input = document.getElementById('qcStatusInput' + orderId);
+    const form = document.getElementById('rejectionForm' + orderId);
+
+    input.value = status;
+
+    if (status === 'rejected') {
+        form.style.display = 'block';
+
+        form.querySelectorAll('select').forEach(el => {
+            el.required = true;
+        });
+
+    } else {
+        form.style.display = 'none';
     }
 }
 </script>

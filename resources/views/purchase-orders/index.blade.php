@@ -41,6 +41,7 @@
             <table class="table table-hover">
                 <thead>
                     <tr>
+                        <th>User Input</th>
                         <th>No PO</th>
                         <th>Konsumen</th>
                         <th>Jenis PO</th>
@@ -53,6 +54,7 @@
                 <tbody>
                     @forelse($orders as $order)
                     <tr>
+                        <td>{{ $order->creator ? $order->creator->name : '-' }}</td>
                         <td><strong>{{ $order->po_number }}</strong></td>
                         <td>{{ $order->nama_konsumen }}</td>
                         <td>{{ $order->jenis_po }}</td>

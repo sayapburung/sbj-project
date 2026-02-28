@@ -163,6 +163,14 @@
 
                         {{-- PREVIEW --}}
                         <div id="preview" class="row mt-3 g-2"></div>
+                        <div class="progress mt-3" style="height:20px; display:none;" id="uploadProgressWrapper">
+    <div id="uploadProgressBar"
+         class="progress-bar progress-bar-striped progress-bar-animated"
+         role="progressbar"
+         style="width: 0%">
+        0%
+    </div>
+</div>
                     </div>
 
                     <div class="d-flex gap-2">
@@ -184,73 +192,78 @@
 
 
 <script>
+document.addEventListener("DOMContentLoaded", function() {
+
     const dropzone = document.getElementById("dropzone");
     const fileInput = document.getElementById("fileInput");
     const preview = document.getElementById("preview");
-    const singleFileInput = document.getElementById('fileUpload');
-    const singleFileError = document.getElementById('fileError');
+    const form = document.querySelector("form");
+    const progressWrapper = document.getElementById("uploadProgressWrapper");
+    const progressBar = document.getElementById("uploadProgressBar");
+    const jenisSelect = document.querySelector('select[name="jenis_po_id"]');
 
     let filesArray = [];
 
-    //Validasi Single File
-        if (singleFileInput) {
+    // =========================
+    // GENERATE NOMOR PO
+    // =========================
+    if (jenisSelect) {
+        jenisSelect.addEventListener("change", function() {
 
-        singleFileInput.addEventListener('change', function () {
+            const jenisPoId = this.value;
+            const previewField = document.getElementById("poNumberPreview");
 
-            // reset error
-            singleFileError.style.display = 'none';
-            singleFileInput.classList.remove('is-invalid');
-
-            const file = this.files[0];
-
-            if (file) {
-
-                const maxSize = 10 * 1024 * 1024; // 10MB
-
-                if (file.size > maxSize) {
-
-                    singleFileError.innerText = "Ukuran file terlalu besar! Maksimal 10MB.";
-                    singleFileError.style.display = 'block';
-
-                    this.value = ""; // reset file
-                    singleFileInput.classList.add('is-invalid');
-                }
+            if (!jenisPoId) {
+                previewField.value = '';
+                return;
             }
-        });
 
+            fetch(`/generate-po-preview/${jenisPoId}`)
+                .then(response => response.json())
+                .then(data => {
+                    previewField.value = data.po_number;
+                });
+
+        });
     }
 
-    // Klik dropzone → buka file picker
+    // =========================
+    // DROPZONE CLICK
+    // =========================
     dropzone.addEventListener("click", () => fileInput.click());
 
-    // Saat pilih file manual
+    // =========================
+    // FILE SELECT
+    // =========================
     fileInput.addEventListener("change", (e) => {
         handleFiles(e.target.files);
     });
 
-    // Drag masuk
+    // =========================
+    // DRAG EVENTS
+    // =========================
     dropzone.addEventListener("dragover", (e) => {
         e.preventDefault();
         dropzone.classList.add("bg-light");
     });
 
-    // Drag keluar
     dropzone.addEventListener("dragleave", () => {
         dropzone.classList.remove("bg-light");
     });
 
-    // Drop file
     dropzone.addEventListener("drop", (e) => {
         e.preventDefault();
         dropzone.classList.remove("bg-light");
-
         handleFiles(e.dataTransfer.files);
     });
 
+    // =========================
+    // HANDLE FILES
+    // =========================
     function handleFiles(files) {
+
         for (let file of files) {
 
-            // Validasi max 5MB
             if (file.size > 5 * 1024 * 1024) {
                 alert("File terlalu besar! Max 5MB per gambar.");
                 continue;
@@ -263,7 +276,11 @@
         updateInputFiles();
     }
 
+    // =========================
+    // RENDER PREVIEW
+    // =========================
     function renderPreview() {
+
         preview.innerHTML = "";
 
         filesArray.forEach((file, index) => {
@@ -271,20 +288,34 @@
             const reader = new FileReader();
 
             reader.onload = function(e) {
+
+                const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
+
                 const col = document.createElement("div");
                 col.classList.add("col-md-3");
 
                 col.innerHTML = `
                     <div class="card shadow-sm position-relative">
+
                         <img src="${e.target.result}"
                              class="card-img-top"
                              style="height:120px; object-fit:cover;">
 
+                        <div class="card-body p-2">
+                            <small class="fw-bold d-block text-truncate">
+                                ${file.name}
+                            </small>
+                            <small class="text-muted">
+                                ${sizeMB} MB
+                            </small>
+                        </div>
+
                         <button type="button"
-                                onclick="removeFile(${index})"
-                                class="btn btn-danger btn-sm position-absolute top-0 end-0 m-1">
+                                class="btn btn-danger btn-sm position-absolute top-0 end-0 m-1"
+                                data-index="${index}">
                             ✕
                         </button>
+
                     </div>
                 `;
 
@@ -295,14 +326,27 @@
         });
     }
 
-    function removeFile(index) {
-        filesArray.splice(index, 1);
-        renderPreview();
-        updateInputFiles();
-    }
+    // =========================
+    // REMOVE FILE (EVENT DELEGATION)
+    // =========================
+    preview.addEventListener("click", function(e) {
 
+        if (e.target.dataset.index !== undefined) {
+
+            const index = e.target.dataset.index;
+            filesArray.splice(index, 1);
+
+            renderPreview();
+            updateInputFiles();
+        }
+
+    });
+
+    // =========================
+    // UPDATE INPUT FILES
+    // =========================
     function updateInputFiles() {
-        // Buat ulang FileList supaya Laravel tetap terima
+
         const dataTransfer = new DataTransfer();
 
         filesArray.forEach(file => {
@@ -311,21 +355,56 @@
 
         fileInput.files = dataTransfer.files;
     }
-    document.querySelector('select[name="jenis_po_id"]').addEventListener('change', function () {
 
-    const jenisPoId = this.value;
-    const previewField = document.getElementById('poNumberPreview');
+    // =========================
+    // FORM SUBMIT WITH PROGRESS
+    // =========================
+    if (form && progressWrapper && progressBar) {
 
-    if (!jenisPoId) {
-        previewField.value = '';
-        return;
+        form.addEventListener("submit", function(e) {
+
+            if (filesArray.length === 0) return;
+
+            e.preventDefault();
+
+            const formData = new FormData(form);
+
+            progressWrapper.style.display = "block";
+
+            const xhr = new XMLHttpRequest();
+            xhr.open("POST", form.action, true);
+
+            xhr.upload.addEventListener("progress", function(e) {
+
+                if (e.lengthComputable) {
+
+                    const percent = Math.round((e.loaded / e.total) * 100);
+
+                    progressBar.style.width = percent + "%";
+                    progressBar.innerText = percent + "%";
+                }
+            });
+
+            xhr.onload = function() {
+
+                if (xhr.status === 200) {
+
+                    progressBar.classList.remove("progress-bar-animated");
+                    progressBar.classList.add("bg-success");
+                    progressBar.innerText = "Upload selesai ✔";
+
+                    setTimeout(() => {
+                        window.location.href = "{{ route('purchase-orders.index') }}";
+                    }, 800);
+                }
+
+            };
+
+            xhr.send(formData);
+
+        });
     }
 
-    fetch(`/generate-po-preview/${jenisPoId}`)
-        .then(response => response.json())
-        .then(data => {
-            previewField.value = data.po_number;
-        });
 });
 </script>
 

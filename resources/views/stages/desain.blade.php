@@ -146,31 +146,77 @@
 
                     <!-- UPLOAD GAMBAR DESAIN -->
                     <div class="mb-2">
-                        <label class="form-label small"><strong><i class="fas fa-images"></i> Upload Gambar Desain:</strong></label>
-                        <input type="file" name="images[]" class="form-control form-control-sm" 
-                               multiple accept="image/*">
-                        <small class="text-muted">Upload hasil desain (Max 5MB per file, bisa multiple)</small>
+                        <label class="form-label small">
+                            <strong><i class="fas fa-images"></i> Upload Gambar Desain:</strong>
+                        </label>
+
+                        <div class="desain-dropzone border border-2 border-dashed rounded p-3 text-center"
+                            data-order="{{ $order->id }}"
+                            style="cursor:pointer; background:#fafafa;">
+
+                            <p class="mb-1 small">📌 Drag & Drop gambar disini</p>
+                            <small class="text-muted">atau klik untuk pilih file</small>
+
+                            <input type="file"
+                                name="images[]"
+                                class="desain-file-input"
+                                data-order="{{ $order->id }}"
+                                multiple
+                                accept="image/*"
+                                hidden>
+                        </div>
+
+                        <small class="text-muted d-block mt-1">
+                            Max 5MB per file
+                        </small>
+
+                        <div class="text-danger small mt-1 file-error" 
+                            data-order="{{ $order->id }}" 
+                            style="display:none;"></div>
+
+                        <div class="row mt-2 g-2 preview-container" 
+                            data-order="{{ $order->id }}"></div>
+
+                        @error('images.*')
+                            <div class="text-danger small mt-1">
+                                {{ $message }}
+                            </div>
+                        @enderror
                     </div>
 
                     <!-- DESKRIPSI GAMBAR (OPSIONAL) -->
                     <div class="mb-2">
                         <label class="form-label small">Keterangan Gambar (Opsional):</label>
                         <input type="text" name="description" class="form-control form-control-sm" 
-                               placeholder="Contoh: Revisi warna merah, Layout final, dll">
+                               placeholder="Isi Keterangan">
                     </div>
 
                     <!-- UPDATE STATUS -->
                     <label class="form-label small"><strong>Update Status:</strong></label>
                     <div class="input-group">
-                        <select name="stage_status" class="form-select form-select-sm" required>
-                            <option value="">Pilih Status</option>
-                            <!-- <option value="start" {{ $order->stage_status == 'start' ? 'selected' : '' }}>Start</option> -->
-                            <option value="progress" {{ $order->stage_status == 'progress' ? 'selected' : '' }}>Start</option>
-                            <option value="selesai" {{ $order->stage_status == 'selesai' ? 'selected' : '' }}>Selesai</option>
-                        </select>
-                        <button type="submit" class="btn btn-sm btn-primary">
+                        <div class="d-flex gap-2">
+                            <!-- Tombol START / PROGRESS -->
+                            <button type="submit"
+                                    name="stage_status"
+                                    value="progress"
+                                    class="btn btn-sm 
+                                        {{ $order->stage_status == 'progress' ? 'btn-warning' : 'btn-outline-warning' }}">
+                                <i class="fas fa-play"></i> Start
+                            </button>
+
+                            <!-- Tombol SELESAI -->
+                            <button type="submit"
+                                    name="stage_status"
+                                    value="selesai"
+                                    class="btn btn-sm 
+                                        {{ $order->stage_status == 'selesai' ? 'btn-success' : 'btn-outline-success' }}">
+                                <i class="fas fa-check"></i> Selesai
+                            </button>
+
+                        </div>
+                        <!-- <button type="submit" class="btn btn-sm btn-primary">
                             <i class="fas fa-save"></i> Update
-                        </button>
+                        </button> -->
                     </div>
                 </form>
 
@@ -248,4 +294,160 @@
 <div class="d-flex justify-content-center">
     {{ $orders->links() }}
 </div>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const allDropzones = document.querySelectorAll(".desain-dropzone");
+
+    allDropzones.forEach(dropzone => {
+
+        const orderId = dropzone.dataset.order;
+        const fileInput = document.querySelector(`.desain-file-input[data-order="${orderId}"]`);
+        const previewContainer = document.querySelector(`.preview-container[data-order="${orderId}"]`);
+        const errorDiv = document.querySelector(`.file-error[data-order="${orderId}"]`);
+
+        let filesArray = [];
+
+        dropzone.addEventListener("click", () => fileInput.click());
+
+        dropzone.addEventListener("dragover", (e) => {
+            e.preventDefault();
+            dropzone.classList.add("bg-light");
+        });
+
+        dropzone.addEventListener("dragleave", () => {
+            dropzone.classList.remove("bg-light");
+        });
+
+        dropzone.addEventListener("drop", (e) => {
+            e.preventDefault();
+            dropzone.classList.remove("bg-light");
+            handleFiles(e.dataTransfer.files);
+        });
+
+        fileInput.addEventListener("change", (e) => {
+            handleFiles(e.target.files);
+        });
+
+        function handleFiles(files) {
+
+            errorDiv.style.display = "none";
+            errorDiv.innerText = "";
+
+            for (let file of files) {
+
+                if (file.size > 5 * 1024 * 1024) {
+                    errorDiv.innerText = "File terlalu besar! Maksimal 5MB.";
+                    errorDiv.style.display = "block";
+                    continue;
+                }
+
+                filesArray.push(file);
+            }
+
+            renderPreview();
+            updateInputFiles();
+        }
+
+        function formatSize(bytes) {
+            if (bytes < 1024) return bytes + " B";
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
+            return (bytes / (1024 * 1024)).toFixed(2) + " MB";
+        }
+
+        function renderPreview() {
+
+            previewContainer.innerHTML = "";
+
+            filesArray.forEach((file, index) => {
+
+                const reader = new FileReader();
+
+                reader.onload = function(e) {
+
+                    const col = document.createElement("div");
+                    col.classList.add("col-12");
+
+                    col.innerHTML = `
+                        <div class="card shadow-sm p-2">
+                            <div class="d-flex gap-3 align-items-center">
+
+                                <img src="${e.target.result}"
+                                     style="width:70px; height:70px; object-fit:cover; border-radius:6px;">
+
+                                <div class="flex-grow-1">
+                                    <div class="fw-bold small">${file.name}</div>
+                                    <div class="text-muted small">${formatSize(file.size)}</div>
+
+                                    <div class="progress mt-2" style="height:6px;">
+                                        <div class="progress-bar bg-info progress-bar-${orderId}-${index}" 
+                                             style="width: 0%"></div>
+                                    </div>
+                                </div>
+
+                                <button type="button"
+                                        class="btn btn-danger btn-sm"
+                                        onclick="removeDesainFile(${orderId}, ${index})">
+                                    ✕
+                                </button>
+
+                            </div>
+                        </div>
+                    `;
+
+                    previewContainer.appendChild(col);
+
+                    simulateProgress(orderId, index);
+                };
+
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function simulateProgress(orderId, index) {
+
+            let progress = 0;
+            const bar = document.querySelector(`.progress-bar-${orderId}-${index}`);
+
+            const interval = setInterval(() => {
+
+                progress += 10;
+                bar.style.width = progress + "%";
+
+                if (progress >= 100) {
+                    clearInterval(interval);
+                }
+
+            }, 100);
+        }
+
+        function updateInputFiles() {
+            const dataTransfer = new DataTransfer();
+            filesArray.forEach(file => dataTransfer.items.add(file));
+            fileInput.files = dataTransfer.files;
+        }
+
+        window.removeDesainFile = function(orderId, index) {
+
+            filesArray.splice(index, 1);
+            renderPreview();
+            updateInputFiles();
+        };
+
+    });
+
+});
+</script>
+<style>
+.desain-dropzone {
+    transition: 0.2s;
+}
+.desain-dropzone:hover {
+    background: #e9f7ff;
+    border-color: #17a2b8;
+}
+.border-dashed {
+    border-style: dashed !important;
+}
+</style>
 @endsection

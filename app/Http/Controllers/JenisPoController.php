@@ -91,9 +91,17 @@ class JenisPoController extends Controller
      */
     public function destroy(string $id)
     {
+        $jenis_po = JenisPo::findOrFail($id);
+
+        // Cek apakah masih dipakai di purchase_orders
+        if ($jenis_po->purchaseOrders()->exists()) {
+            return redirect()->route('jenis-po.index')
+                ->with('error', 'Jenis PO tidak bisa dihapus sudah ada Purchase Order.');
+        }
+
         $jenis_po->delete();
 
         return redirect()->route('jenis-po.index')
-            ->with('success', 'Jenis PO berhasil dihapus');
+            ->with('success', 'Jenis PO berhasil dihapus.');
     }
 }

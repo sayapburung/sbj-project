@@ -130,15 +130,38 @@
                     @csrf
                     <label class="form-label small"><strong>Status Pengiriman:</strong></label>
                     <div class="input-group">
-                        <select name="stage_status" class="form-select form-select-sm" required>
-                            <option value="">Pilih Status</option>
-                            <option value="pending" {{ $order->stage_status == 'pending' ? 'selected' : '' }}>Pending</option>
-                            <option value="ready" {{ $order->stage_status == 'ready' ? 'selected' : '' }}>Ready to Ship</option>
-                            <option value="shipped" {{ $order->stage_status == 'shipped' ? 'selected' : '' }}>Shipped</option>
-                        </select>
-                        <button type="submit" class="btn btn-sm btn-primary">
-                            <i class="fas fa-save"></i> Update
-                        </button>
+                        <input type="hidden" 
+       name="stage_status" 
+       id="shippingStatusInput{{ $order->id }}">
+
+<div class="d-flex gap-2 flex-wrap">
+
+    <!-- Pending -->
+    <button type="submit"
+            onclick="setShippingStatus({{ $order->id }}, 'pending')"
+            class="btn btn-sm 
+                {{ $order->stage_status == 'pending' ? 'btn-secondary' : 'btn-outline-secondary' }}">
+        ⏳ Pending
+    </button>
+
+    <!-- Ready -->
+    <button type="submit"
+            onclick="setShippingStatus({{ $order->id }}, 'ready')"
+            class="btn btn-sm 
+                {{ $order->stage_status == 'ready' ? 'btn-info' : 'btn-outline-info' }}">
+        📦 Ready
+    </button>
+
+    <!-- Shipped -->
+    <button type="submit"
+            onclick="setShippingStatus({{ $order->id }}, 'shipped')"
+            class="btn btn-sm 
+                {{ $order->stage_status == 'shipped' ? 'btn-success' : 'btn-outline-success' }}">
+        🚚 Shipped
+    </button>
+
+</div>
+
                     </div>
                 </form>
 
@@ -170,4 +193,14 @@
 <div class="d-flex justify-content-center">
     {{ $orders->links() }}
 </div>
+<script>
+function setShippingStatus(orderId, status) {
+
+    const input = document.getElementById('shippingStatusInput' + orderId);
+
+    if (!input) return;
+
+    input.value = status;
+}
+</script>
 @endsection

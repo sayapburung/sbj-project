@@ -143,15 +143,27 @@
                     </div>
                     <label class="form-label small"><strong>Update Status:</strong></label>
                     <div class="input-group">
-                        <select name="stage_status" class="form-select form-select-sm" required>
-                            <option value="">Pilih Status</option>
-                            <!-- <option value="start" {{ $order->stage_status == 'start' ? 'selected' : '' }}>Start</option> -->
-                            <option value="progress" {{ $order->stage_status == 'progress' ? 'selected' : '' }}>Start</option>
-                            <option value="selesai" {{ $order->stage_status == 'selesai' ? 'selected' : '' }}>Selesai</option>
-                        </select>
-                        <button type="submit" class="btn btn-sm btn-primary">
-                            <i class="fas fa-save"></i> Update
-                        </button>
+                        <div class="d-flex gap-2">
+
+                            <!-- Tombol START / PROGRESS -->
+                            <button type="submit"
+                                    name="stage_status"
+                                    value="progress"
+                                    class="btn btn-sm 
+                                        {{ $order->stage_status == 'progress' ? 'btn-warning' : 'btn-outline-warning' }}">
+                                <i class="fas fa-play"></i> Start
+                            </button>
+
+                            <!-- Tombol SELESAI -->
+                            <button type="submit"
+                                    name="stage_status"
+                                    value="selesai"
+                                    class="btn btn-sm 
+                                        {{ $order->stage_status == 'selesai' ? 'btn-success' : 'btn-outline-success' }}">
+                                <i class="fas fa-check"></i> Selesai
+                            </button>
+
+                        </div>
                     </div>
                 </form>
 

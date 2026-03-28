@@ -27,37 +27,38 @@ class PrintingController extends Controller
         return view('stages.printing', compact('orders'));
     }
 
-    public function updateStatus(Request $request, $id)
-    {
-        $order = PurchaseOrder::findOrFail($id);
-        
-        $validated = $request->validate([
-            'stage_status' => 'required|in:start,progress,selesai',
-            'meteran_printing' => 'nullable|numeric|min:0',
-        ]);
+public function updateStatus(Request $request, $id)
+{
+    $order = PurchaseOrder::findOrFail($id);
+    
+    $validated = $request->validate([
+        'stage_status' => 'required|in:start,progress,selesai',
+        'meteran_printing' => 'nullable|numeric|min:0',
+    ]);
 
-        OrderHistory::recordTransition(
-    $order->id,
-    $order->current_stage,
-    $order->current_stage, // tetap di stage yang sama
-    $order->stage_status,
-    $validated['stage_status'],
-    'Status diubah menjadi ' . $validated['stage_status']
-);
+    // Record perubahan status (tanpa pindah stage)
+    OrderHistory::recordStatusChange($order, $validated['stage_status']);
 
-        // Record history
-OrderHistory::recordStatusChange($order, $validated['stage_status']);
-        $order->update(['stage_status' => $validated['stage_status']]);
+    // Update status di tabel purchase_orders
+    $order->update([
+        'stage_status' => $validated['stage_status']
+    ]);
 
-        if (isset($validated['meteran_printing'])) {
-            StageInput::updateOrCreate(
-                ['po_id' => $order->id, 'stage_name' => 'printing'],
-                ['meteran_printing' => $validated['meteran_printing']]
-            );
-        }
-
-        return redirect()->back()->with('success', 'Status berhasil diupdate');
+    // Update atau buat input printing jika ada meteran
+    if (isset($validated['meteran_printing'])) {
+        StageInput::updateOrCreate(
+            [
+                'po_id' => $order->id,
+                'stage_name' => 'printing'
+            ],
+            [
+                'meteran_printing' => $validated['meteran_printing']
+            ]
+        );
     }
+
+    return redirect()->back()->with('success', 'Status berhasil diupdate');
+}
 
     public function moveToStage(Request $request, $id)
     {

@@ -232,7 +232,7 @@ class AnalyticsController extends Controller
                 'purchase_orders.jenis_bahan',
                 DB::raw('SUM(COALESCE(stage_inputs.meteran_desain,0)) AS total_desain'),
                 DB::raw('SUM(COALESCE(stage_inputs.meteran_printing,0)) AS total_printing'),
-                DB::raw('SUM(COALESCE(stage_inputs.meteran_press,0)) AS total_press')
+                DB::raw('SUM(COALESCE(stage_inputs.kiloan,0)) AS total_press')
             );
 
         if ($dateMode === 'completed') {

@@ -27,7 +27,14 @@
         background: #ccc;
         border-radius: 10px;
     }
+    .blink {
+        animation: blinkSoft 1.2s infinite;
+    }
 
+    @keyframes blinkSoft {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.6; }
+    }
     .kanban-container {
         display: flex;
         gap: 15px;
@@ -173,6 +180,17 @@
 <div class="kanban-scroll">
     <div class="kanban-container">
 
+        @php
+            function statusColor($status){
+                return match($status){
+                    'selesai','approved','shipped' => '#28a745',
+                    'process','ready'             => '#ffc107',
+                    'rejected'                     => '#dc3545',
+                    default                        => '#6c757d'
+                };
+            }
+        @endphp
+
         <!-- Waiting List -->
         <div class="kanban-column">
             <div class="kanban-header" style="background-color: #6c757d;">
@@ -181,24 +199,31 @@
             </div>
             <div class="kanban-body">
                 @foreach($kanbanData['waiting_list'] as $order)
-                    <div class="kanban-card" style="border-left-color: #6c757d;" data-id="{{ $order->id }}" onclick="showDetail({{ $order->id }})">
-                        <div class="kanban-card-title">{{ $order->po_number }}</div>
-                        <div class="kanban-card-meta"><i class="fas fa-user"></i> {{ $order->nama_konsumen }}</div>
-                        <div class="kanban-card-meta"><i class="fas fa-calendar"></i> {{ $order->deadline->format('d/m/Y') }}</div>
-                        <div class="kanban-card-meta"><i class="fas fa-tag"></i> {{ $order->jenis_po }}</div>
-                        @if($order->images->count() > 0)
-                        <div class="kanban-images">
-                            @foreach($order->images->take(3) as $image)
-                            <img src="{{ asset('storage/'.$image->image_path) }}" alt="Img">
-                            @endforeach
-                            @if($order->images->count() > 3)
-                            <div style="width:40px;height:40px;background:#eee;display:flex;align-items:center;justify-content:center;border-radius:4px;font-size:11px;">
-                                +{{ $order->images->count() - 3 }}
-                            </div>
-                            @endif
-                        </div>
-                        @endif
+                @php
+                    $isLate = $order->deadline < now();
+                @endphp
+
+                <div class="kanban-card"
+                     style="border-left:5px solid #6c757d;"
+                     data-id="{{ $order->id }}" onclick="showDetail({{ $order->id }})">
+
+                    <div class="kanban-card-title">{{ $order->po_number }}</div>
+                    <div class="kanban-card-meta"><i class="fas fa-user"></i> {{ $order->nama_konsumen }}</div>
+                    <div class="kanban-card-meta"><i class="fas fa-calendar"></i> {{ $order->deadline->format('d/m/Y') }}</div>
+                    <div class="kanban-card-meta"><i class="fas fa-tag"></i> {{ $order->jenis_po }}</div>
+
+                    @if($isLate)
+                        <div class="text-danger small mt-1 blink">⏰ Deadline</div>
+                    @endif
+
+                    @if($order->images->count() > 0)
+                    <div class="kanban-images">
+                        @foreach($order->images->take(3) as $image)
+                        <img src="{{ asset('storage/'.$image->image_path) }}">
+                        @endforeach
                     </div>
+                    @endif
+                </div>
                 @endforeach
             </div>
         </div>
@@ -211,27 +236,28 @@
             </div>
             <div class="kanban-body">
                 @foreach($kanbanData['desain'] as $order)
-                    <div class="kanban-card" style="border-left-color: #17a2b8;" data-id="{{ $order->id }}" onclick="showDetail({{ $order->id }})">
-                        <div class="kanban-card-title">{{ $order->po_number }}</div>
-                        <div class="kanban-card-meta"><i class="fas fa-user"></i> {{ $order->nama_konsumen }}</div>
-                        <div class="kanban-card-meta"><i class="fas fa-calendar"></i> {{ $order->deadline->format('d/m/Y') }}</div>
-                        <div class="kanban-card-meta"><i class="fas fa-tag"></i> {{ $order->jenis_po }}</div>
-                        <span class="badge" style="background-color: {{ $order->stage_status == 'selesai' ? '#28a745' : ($order->stage_status == 'progress' ? '#ffc107' : '#6c757d') }}">
-                            {{ ucfirst($order->stage_status) }}
-                        </span>
-                        @if($order->images->count() > 0)
-                        <div class="kanban-images">
-                            @foreach($order->images->take(3) as $image)
-                            <img src="{{ asset('storage/'.$image->image_path) }}" alt="Img">
-                            @endforeach
-                            @if($order->images->count() > 3)
-                            <div style="width:40px;height:40px;background:#eee;display:flex;align-items:center;justify-content:center;border-radius:4px;font-size:11px;">
-                                +{{ $order->images->count() - 3 }}
-                            </div>
-                            @endif
-                        </div>
-                        @endif
-                    </div>
+                @php
+                    $isLate = $order->deadline < now() && $order->stage_status != 'selesai';
+                    $color = statusColor($order->stage_status);
+                @endphp
+
+                <div class="kanban-card"
+                     style="border-left:5px solid {{ $color }};"
+                     data-id="{{ $order->id }}" onclick="showDetail({{ $order->id }})">
+
+                    <div class="kanban-card-title">{{ $order->po_number }}</div>
+                    <div class="kanban-card-meta"><i class="fas fa-user"></i> {{ $order->nama_konsumen }}</div>
+                    <div class="kanban-card-meta"><i class="fas fa-calendar"></i> {{ $order->deadline->format('d/m/Y') }}</div>
+                    <div class="kanban-card-meta"><i class="fas fa-tag"></i> {{ $order->jenis_po }}</div>
+
+                    <span class="badge" style="background-color: {{ $color }}">
+                        {{ ucfirst($order->stage_status) }}
+                    </span>
+
+                    @if($isLate)
+                        <div class="text-danger small mt-1 blink">⏰ Deadline</div>
+                    @endif
+                </div>
                 @endforeach
             </div>
         </div>
@@ -244,43 +270,60 @@
             </div>
             <div class="kanban-body">
                 @foreach($kanbanData['printing'] as $order)
-                    <div class="kanban-card" style="border-left-color: #007bff;" data-id="{{ $order->id }}" onclick="showDetail({{ $order->id }})">
-                        <div class="kanban-card-title">{{ $order->po_number }}</div>
-                        <div class="kanban-card-meta"><i class="fas fa-user"></i> {{ $order->nama_konsumen }}</div>
-                        <div class="kanban-card-meta"><i class="fas fa-tag"></i> {{ $order->jenis_po }}</div>
-                        <div class="kanban-card-meta"><i class="fas fa-calendar"></i> {{ $order->deadline->format('d/m/Y') }}</div>
-                        <span class="badge" style="background-color: {{ $order->stage_status == 'selesai' ? '#28a745' : ($order->stage_status == 'progress' ? '#ffc107' : '#6c757d') }}">
-                            {{ ucfirst($order->stage_status) }}
-                        </span>
-                        @if($order->images->count() > 0)
-                        <div class="kanban-images">
-                            @foreach($order->images->take(3) as $image)
-                            <img src="{{ asset('storage/'.$image->image_path) }}" alt="Img">
-                            @endforeach
-                        </div>
-                        @endif
-                    </div>
+                @php
+                    $isLate = $order->deadline < now() && $order->stage_status != 'selesai';
+                    $color = statusColor($order->stage_status);
+                @endphp
+
+                <div class="kanban-card"
+                     style="border-left:5px solid {{ $color }};"
+                     data-id="{{ $order->id }}" onclick="showDetail({{ $order->id }})">
+
+                    <div class="kanban-card-title">{{ $order->po_number }}</div>
+                    <div class="kanban-card-meta">{{ $order->nama_konsumen }}</div>
+                    <div class="kanban-card-meta">{{ $order->deadline->format('d/m/Y') }}</div>
+
+                    <span class="badge" style="background-color: {{ $color }}">
+                        {{ ucfirst($order->stage_status) }}
+                    </span>
+
+                    @if($isLate)
+                        <div class="text-danger small mt-1 blink">⏰ Deadline</div>
+                    @endif
+                </div>
                 @endforeach
             </div>
         </div>
 
         <!-- Press -->
         <div class="kanban-column">
-            <div class="kanban-header" style="background-color: #ffc107; color: #000;">
+            <div class="kanban-header" style="background-color: #ffc107; color:#000;">
                 <span>Press</span>
                 <span class="badge bg-dark">{{ $kanbanData['press']->count() }}</span>
             </div>
             <div class="kanban-body">
                 @foreach($kanbanData['press'] as $order)
-                    <div class="kanban-card" style="border-left-color: #ffc107;" data-id="{{ $order->id }}" onclick="showDetail({{ $order->id }})">
-                        <div class="kanban-card-title">{{ $order->po_number }}</div>
-                        <div class="kanban-card-meta"><i class="fas fa-user"></i> {{ $order->nama_konsumen }}</div>
-                        <div class="kanban-card-meta"><i class="fas fa-tag"></i> {{ $order->jenis_po }}</div>
-                        <div class="kanban-card-meta"><i class="fas fa-calendar"></i> {{ $order->deadline->format('d/m/Y') }}</div>
-                        <span class="badge" style="background-color: {{ $order->stage_status == 'selesai' ? '#28a745' : ($order->stage_status == 'progress' ? '#ffc107' : '#6c757d') }}">
-                            {{ ucfirst($order->stage_status) }}
-                        </span>
-                    </div>
+                @php
+                    $isLate = $order->deadline < now() && $order->stage_status != 'selesai';
+                    $color = statusColor($order->stage_status);
+                @endphp
+
+                <div class="kanban-card"
+                     style="border-left:5px solid {{ $color }};"
+                     data-id="{{ $order->id }}" onclick="showDetail({{ $order->id }})">
+
+                    <div class="kanban-card-title">{{ $order->po_number }}</div>
+                    <div class="kanban-card-meta">{{ $order->nama_konsumen }}</div>
+                    <div class="kanban-card-meta">{{ $order->deadline->format('d/m/Y') }}</div>
+
+                    <span class="badge" style="background-color: {{ $color }}">
+                        {{ ucfirst($order->stage_status) }}
+                    </span>
+
+                    @if($isLate)
+                        <div class="text-danger small mt-1 blink">⏰ Deadline</div>
+                    @endif
+                </div>
                 @endforeach
             </div>
         </div>
@@ -293,15 +336,27 @@
             </div>
             <div class="kanban-body">
                 @foreach($kanbanData['qc'] as $order)
-                    <div class="kanban-card" style="border-left-color: #343a40;" data-id="{{ $order->id }}" onclick="showDetail({{ $order->id }})">
-                        <div class="kanban-card-title">{{ $order->po_number }}</div>
-                        <div class="kanban-card-meta"><i class="fas fa-user"></i> {{ $order->nama_konsumen }}</div>
-                        <div class="kanban-card-meta"><i class="fas fa-tag"></i> {{ $order->jenis_po }}</div>
-                        <div class="kanban-card-meta"><i class="fas fa-calendar"></i> {{ $order->deadline->format('d/m/Y') }}</div>
-                        <span class="badge" style="background-color: {{ $order->stage_status == 'approved' ? '#28a745' : ($order->stage_status == 'rejected' ? '#dc3545' : '#6c757d') }}">
-                            {{ ucfirst($order->stage_status) }}
-                        </span>
-                    </div>
+                @php
+                    $isLate = $order->deadline < now() && $order->stage_status != 'approved';
+                    $color = statusColor($order->stage_status);
+                @endphp
+
+                <div class="kanban-card"
+                     style="border-left:5px solid {{ $color }};"
+                     data-id="{{ $order->id }}" onclick="showDetail({{ $order->id }})">
+
+                    <div class="kanban-card-title">{{ $order->po_number }}</div>
+                    <div class="kanban-card-meta">{{ $order->nama_konsumen }}</div>
+                    <div class="kanban-card-meta">{{ $order->deadline->format('d/m/Y') }}</div>
+
+                    <span class="badge" style="background-color: {{ $color }}">
+                        {{ ucfirst($order->stage_status) }}
+                    </span>
+
+                    @if($isLate)
+                        <div class="text-danger small mt-1 blink">⏰ Deadline</div>
+                    @endif
+                </div>
                 @endforeach
             </div>
         </div>
@@ -314,21 +369,33 @@
             </div>
             <div class="kanban-body">
                 @foreach($kanbanData['pengiriman'] as $order)
-                    <div class="kanban-card" style="border-left-color: #6f42c1;" data-id="{{ $order->id }}" onclick="showDetail({{ $order->id }})">
-                        <div class="kanban-card-title">{{ $order->po_number }}</div>
-                        <div class="kanban-card-meta"><i class="fas fa-user"></i> {{ $order->nama_konsumen }}</div>
-                        <div class="kanban-card-meta"><i class="fas fa-tag"></i> {{ $order->jenis_po }}</div>
-                        <div class="kanban-card-meta"><i class="fas fa-calendar"></i> {{ $order->deadline->format('d/m/Y') }}</div>
-                        <span class="badge" style="background-color: {{ $order->stage_status == 'shipped' ? '#28a745' : ($order->stage_status == 'ready' ? '#ffc107' : '#6c757d') }}">
-                            {{ ucfirst($order->stage_status) }}
-                        </span>
-                    </div>
+                @php
+                    $isLate = $order->deadline < now() && $order->stage_status != 'shipped';
+                    $color = statusColor($order->stage_status);
+                @endphp
+
+                <div class="kanban-card"
+                     style="border-left:5px solid {{ $color }};"
+                     data-id="{{ $order->id }}" onclick="showDetail({{ $order->id }})">
+
+                    <div class="kanban-card-title">{{ $order->po_number }}</div>
+                    <div class="kanban-card-meta">{{ $order->nama_konsumen }}</div>
+                    <div class="kanban-card-meta">{{ $order->deadline->format('d/m/Y') }}</div>
+
+                    <span class="badge" style="background-color: {{ $color }}">
+                        {{ ucfirst($order->stage_status) }}
+                    </span>
+
+                    @if($isLate)
+                        <div class="text-danger small mt-1 blink">⏰ Deadline</div>
+                    @endif
+                </div>
                 @endforeach
             </div>
         </div>
 
-    </div><!-- .kanban-container -->
-</div><!-- .kanban-scroll -->
+    </div>
+</div>
 
 <!-- Modal Detail -->
 <div class="modal fade" id="detailModal" tabindex="-1">
@@ -352,6 +419,18 @@
 
 @push('scripts')
 <script>
+function refreshKanban() {
+    fetch(window.location.href)
+        .then(res => res.text())
+        .then(html => {
+            let parser = new DOMParser();
+            let doc = parser.parseFromString(html, 'text/html');
+
+            let newContent = doc.querySelector('.kanban-container');
+            document.querySelector('.kanban-container').innerHTML = newContent.innerHTML;
+        });
+}
+setInterval(refreshKanban, 60000);
 function showDetail(id) {
     const modal = new bootstrap.Modal(document.getElementById('detailModal'));
     modal.show();

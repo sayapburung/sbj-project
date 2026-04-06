@@ -279,8 +279,8 @@
                                 <th>Jenis Bahan</th>
                                 <th class="text-end">Meteran Desain</th>
                                 <th class="text-end">Meteran Printing</th>
-                                <th class="text-end">Meteran Press</th>
-                                <th class="text-end">Total</th>
+                                <th class="text-end">Kiloan Press</th>
+                                <!-- <th class="text-end">Total</th> -->
                             </tr>
                         </thead>
 
@@ -293,8 +293,8 @@
                                     <td><strong>{{ $row->jenis_bahan ?? '-' }}</strong></td>
                                     <td class="text-end">{{ number_format($row->total_desain, 2) }} m</td>
                                     <td class="text-end">{{ number_format($row->total_printing, 2) }} m</td>
-                                    <td class="text-end">{{ number_format($row->total_press, 2) }} m</td>
-                                    <td class="text-end"><strong class="text-primary">{{ number_format($total, 2) }} m</strong></td>
+                                    <td class="text-end">{{ number_format($row->total_press, 2) }} kg</td>
+                                    <!-- <td class="text-end"><strong class="text-primary">{{ number_format($total, 2) }} m</strong></td> -->
                                 </tr>
                             @endforeach
                         </tbody>
